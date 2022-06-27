@@ -64,7 +64,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     client_A_Name = incomingReadings.client_name;
     client_A_msg = Msg;
 
-    Serial.println(client_A_Name + ":" + client_A_msg);
+    Serial.println(client_A_Name + "|||" + client_A_msg);
   } 
 }
 
@@ -161,14 +161,14 @@ void setup()
   ESP_Now_Initialize();
 
   // 在core 0啟動 mision 1
-  xTaskCreatePinnedToCore(
-      Task_1_sendData, /* 任務實際對應的Function */
-      "Task_1",        /* 任務名稱 */
-      10000,           /* 堆疊空間 */
-      NULL,            /* 無輸入值 */
-      12,               /* 優先序0(0為最低) */
-      &Task_1,         /* 對應的任務變數位址 */
-      0);              /*指定在核心0執行 */
+  // xTaskCreatePinnedToCore(
+  //     Task_1_sendData, /* 任務實際對應的Function */
+  //     "Task_1",        /* 任務名稱 */
+  //     10000,           /* 堆疊空間 */
+  //     NULL,            /* 無輸入值 */
+  //     12,               /* 優先序0(0為最低) */
+  //     &Task_1,         /* 對應的任務變數位址 */
+  //     0);              /*指定在核心0執行 */
 
   return;
 }
