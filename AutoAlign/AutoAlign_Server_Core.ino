@@ -1,13 +1,11 @@
 #include <EEPROM.h>
 #include <esp_now.h>
 #include <WiFi.h>
-// #include <ESPAsyncWebServer.h>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma region ESP_Now
 
-// REPLACE WITH THE MAC Address of your receiver
 uint8_t broadcastAddress_A[] = {0x8C, 0x4B, 0x14, 0x14, 0x57, 0x08};  //Client Mac address
 uint8_t broadcastAddress_B[] = {0x8C, 0x4B, 0x14, 0x16, 0x37, 0xF8};  //Client Mac address
 
@@ -15,20 +13,9 @@ String Msg, Msg_Value;
 
 typedef struct struct_message {
     String client_name;
-    char msg[30];
+    char msg[50];
     // char value[20];
 } struct_message;
-
-// typedef struct struct_receive_msg_UI_Data {
-//     String msg;
-//     double _Target_IL;
-//     int _Q_Z_offset;
-//     double _ref_Dac;
-//     int _speed_x;
-//     int _speed_y;
-//     int _speed_z;
-//     int _QT;
-// } struct_receive_msg_UI_Data;
 
 // Create a struct_message to hold incoming sensor readings
 struct_message incomingReadings;
@@ -44,52 +31,22 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   }
 }
 
-// void DataSent_Controller(String MSG)
-// {
-//   sendmsg_UI_Data.msg = "Core:" + MSG;
- 
-//   esp_err_t result = esp_now_send(broadcastAddress_A, (uint8_t *) &sendmsg_UI_Data, sizeof(sendmsg_UI_Data));
-// }
-
-String client_A_Name = "", client_A_msg = "";
+String client_Name = "", client_msg = "";
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  String ss = "";
-  ss.toCharArray(incomingReadings.msg, 30);
+  // String ss = "";
+  // ss.toCharArray(incomingReadings.msg, 30);
   memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
   Msg = incomingReadings.msg;
 
   if( Msg != "")
   {
-    client_A_Name = incomingReadings.client_name;
-    client_A_msg = Msg;
+    client_Name = incomingReadings.client_name;
+    client_msg = Msg;
 
-    Serial.println(client_A_Name + "|||" + client_A_msg);
+    Serial.println(client_Name + "|||" + client_msg);
   } 
 }
-
-// void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-//   String ss = "";
-//   ss.toCharArray(incomingReadings.cmd, 30);
-//   ss.toCharArray(incomingReadings.value, 20);
-//   memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-//   Msg = incomingReadings.cmd;
-//   Msg_Value = incomingReadings.value;
-
-
-//   if( Msg != "")
-//   {
-//     name_from_contr = incomingReadings.contr_name;
-//     cmd_from_contr = Msg;
-
-//     if( Msg_Value != "")
-//     {
-//       cmd_value_from_contr = Msg_Value;
-//     }
-//     else
-//       Serial.println(incomingReadings.contr_name + Msg);
-//   } 
-// }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,22 +60,25 @@ void ESP_Now_Initialize()
   }
   else
     Serial.println("Initializing ESP-NOW");
+
+  Serial.print("ESP32 Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
  
   // 绑定數據接收端
   esp_now_peer_info_t peerInfo;
+  memset(&peerInfo, 0, sizeof(peerInfo));  //initialize peer if esp32 library version is 2.0.1 (no need in version 1.0.6)
   memcpy(peerInfo.peer_addr, broadcastAddress_B, 6); // Register peer
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
-  // // Add peer 增加一個PEER到名單列
+  // Add peer 增加一個PEER到名單列
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
     return;
   }
   
   // 設定發送數據時CALLBACK的函式名稱。 通過ESP-NOW傳送數據後，將被呼叫通知是否傳送成功。
-  // Once ESPNow is successfully Init, we will register for Send CB to
-  // get the status of Trasnmitted packet
+  // Once ESPNow is successfully Init, we will register for Send CB to get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
 
   //設定收到數據時CALLBACK的函式名稱。 通過ESP-NOW接收到數據後，將被呼叫以便進一步處理資料。
@@ -169,8 +129,6 @@ void setup()
   //     12,               /* 優先序0(0為最低) */
   //     &Task_1,         /* 對應的任務變數位址 */
   //     0);              /*指定在核心0執行 */
-
-  return;
 }
 
 unsigned long previousMillis = 0;
@@ -179,6 +137,8 @@ const long interval = 300;
 void loop()
 {
   unsigned long currentMillis = millis();
+
+  // delay(1000);
 
   if (currentMillis - previousMillis >= interval && false)
   {
